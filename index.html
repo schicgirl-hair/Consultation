@@ -224,6 +224,22 @@
       line-height:1.55;
     }
 
+
+
+    .product-visual{
+      margin-top:24px;
+      border-radius:26px;
+      overflow:hidden;
+      border:1px solid rgba(185,130,50,.18);
+      background:#fffaf4;
+      box-shadow:var(--shadow-s);
+    }
+
+    .product-visual img{
+      width:100%;
+      display:block;
+    }
+
     .booking-card{
       padding:28px;
     }
@@ -619,6 +635,10 @@
             </div>
           </div>
         </div>
+
+        <div class="product-visual" aria-label="Image produit Consultation Capillaire Schicgirl">
+          
+        </div>
       </div>
 
       <div class="booking-card">
@@ -686,19 +706,19 @@
             <div class="choice-grid" id="packageChoices">
               <div class="choice" data-package="Consultation Express" data-price="15">
                 <strong>Consultation Express — 30 min</strong>
-                <small>Pour clarifier ton problème principal et recevoir les premières actions à faire.</small>
+                <small>Pour clarifier ton problème principal et recevoir les premières actions à faire.<br><strong style="display:block;margin-top:8px;color:#b98232;">15$</strong></small>
               </div>
               <div class="choice" data-package="Routine Personnalisée" data-price="35">
                 <strong>Routine Personnalisée — 60 min</strong>
-                <small>Analyse complète + routine détaillée selon ton profil, porosité, budget et objectif.</small>
+                <small>Analyse complète + routine détaillée selon ton profil, porosité, budget et objectif.<br><strong style="display:block;margin-top:8px;color:#b98232;">35$</strong></small>
               </div>
               <div class="choice" data-package="Suivi Premium" data-price="55">
                 <strong>Suivi Premium — 90 min</strong>
-                <small>Consultation complète + stratégie hydratation + suivi et ajustement.</small>
+                <small>Consultation complète + stratégie hydratation + suivi et ajustement.<br><strong style="display:block;margin-top:8px;color:#b98232;">55$</strong></small>
               </div>
               <div class="choice" data-package="Analyse écrite uniquement" data-price="25">
                 <strong>Analyse écrite uniquement</strong>
-                <small>Tu envoies tes réponses/photos et tu reçois une routine écrite personnalisée.</small>
+                <small>Tu envoies tes réponses/photos et tu reçois une routine écrite personnalisée.<br><strong style="display:block;margin-top:8px;color:#b98232;">25$</strong></small>
               </div>
             </div>
 
@@ -726,8 +746,7 @@
                 <select id="format" required>
                   <option value="">Choisir</option>
                   <option>WhatsApp audio/appel</option>
-                  <option>Zoom / Google Meet</option>
-                  <option>Analyse écrite par email</option>
+                                    <option>Analyse écrite par email</option>
                 </select>
               </div>
             </div>
@@ -753,8 +772,7 @@
             <div class="summary" id="summary"></div>
 
             <div class="notice">
-              Après avoir cliqué sur “Confirmer”, ta réservation sera sauvegardée dans l’admin local.
-              Ensuite, clique sur le bouton Selar pour payer et confirmer officiellement ta place.
+              Après avoir cliqué sur “Confirmer la réservation”, tu seras redirigée vers Selar pour finaliser le paiement et confirmer officiellement ta place.
             </div>
 
             <div class="warning">
@@ -772,8 +790,8 @@
 
         <div class="success-box" id="successBox">
           <h3>Réservation enregistrée 💛</h3>
-          <p>Ton créneau est sauvegardé. Pour confirmer officiellement, finalise le paiement sur Selar.</p>
-          <a id="payLink" class="btn btn-gold" href="TON_LIEN_SELAR_CONSULTATION" target="_blank" rel="noopener">Payer sur Selar</a>
+          <p>Merci. Tu vas être redirigée vers Selar pour finaliser le paiement.</p>
+          <a id="payLink" class="btn btn-gold" href="https://selar.com/0577170571" target="_blank" rel="noopener">Finaliser le paiement sur Selar</a>
           <a id="calendarLink" class="btn btn-outline calendar-link" href="#" target="_blank" rel="noopener">Ajouter à Google Calendar</a>
         </div>
       </div>
@@ -791,7 +809,7 @@
         <div>
           <p class="eyebrow">Schicgirl™ Admin</p>
           <h2 class="section-title">Réservations reçues</h2>
-          <p class="subtext">Les réservations sont sauvegardées localement dans ce navigateur. Pour une vraie production, connecte Apps Script, Google Sheets ou Airtable.</p>
+          <p class="subtext">Espace privé Schicgirl pour consulter les réservations reçues.</p>
         </div>
         <button class="btn btn-outline" id="closeAdmin">Fermer</button>
       </div>
@@ -822,7 +840,12 @@
   </div>
 
 <script>
-const SELAR_PAYMENT_LINK = "TON_LIEN_SELAR_CONSULTATION";
+const SELAR_LINKS = {
+  "Consultation Express": "https://selar.com/consultation_express",
+  "Routine Personnalisée": "https://selar.com/routinepersonnalisee",
+  "Suivi Premium": "https://selar.com/suivipremium",
+  "Analyse écrite uniquement": "https://selar.com/analysecriteuniquement"
+};
 const STORAGE_KEY = "schicgirl_consultation_bookings";
 
 let currentStep = 1;
@@ -928,17 +951,26 @@ function renderSummary(){
 
 $("bookingForm").addEventListener("submit", e=>{
   e.preventDefault();
+
   if(!validateStep()) return;
+
   const booking = getBooking();
+
+  // Sauvegarde réservation
   const bookings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   bookings.push(booking);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
 
-  $("bookingForm").classList.add("hidden");
-  $("successBox").style.display = "block";
-  $("payLink").href = SELAR_PAYMENT_LINK;
-  buildCalendarLink(booking);
-  renderBookings();
+  // Désactive bouton
+  $("submitBtn").disabled = true;
+  $("submitBtn").textContent = "Redirection vers Selar...";
+
+  // Choisit automatiquement le bon lien
+  const paymentLink =
+    SELAR_LINKS[booking.package] || "https://selar.com";
+
+  // Redirection automatique
+  window.location.href = paymentLink;
 });
 
 function buildCalendarLink(b){
@@ -974,10 +1006,12 @@ function renderBookings(){
   `).join("");
 }
 
-$("openAdmin").addEventListener("click", ()=>{
-  $("adminModal").classList.add("open");
-  renderBookings();
-});
+if($("openAdmin")){
+  $("openAdmin").addEventListener("click", ()=>{
+    $("adminModal").classList.add("open");
+    renderBookings();
+  });
+}
 
 $("closeAdmin").addEventListener("click", ()=>{
   $("adminModal").classList.remove("open");
